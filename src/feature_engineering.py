@@ -5,6 +5,10 @@ Purpose
 -------
 Create meaningful behavioral and temporal features
 that help distinguish fraudulent from legitimate transactions.
+
+Purpose
+-------
+Create temporal and behavioral features for fraud detection.
 """
 
 import pandas as pd
@@ -12,28 +16,16 @@ import pandas as pd
 
 def add_time_features(df: pd.DataFrame) -> pd.DataFrame:
     """
-    Add time-based features derived from transaction timestamps.
-
-    Features Created
-    ----------------
-    - hour_of_day
-    - day_of_week
-    - is_weekend
-    - time_since_signup (seconds)
-
-    Parameters
-    ----------
-    df : pd.DataFrame
-        Fraud dataset with timestamp columns.
-
-    Returns
-    -------
-    pd.DataFrame
-        Dataset with additional time-based features.
+    Add time-based fraud indicators.
     """
-    # if not pd.api.types.is_datetime64_any_dtype(df["purchase_time"]):
-    # raise TypeError("purchase_time must be datetime before feature engineering.")
+
     df = df.copy()
+
+    if not pd.api.types.is_datetime64_any_dtype(df["purchase_time"]):
+        raise TypeError("purchase_time must be datetime.")
+
+    if not pd.api.types.is_datetime64_any_dtype(df["signup_time"]):
+        raise TypeError("signup_time must be datetime.")
 
     df["hour_of_day"] = df["purchase_time"].dt.hour
     df["day_of_week"] = df["purchase_time"].dt.dayofweek
@@ -53,18 +45,14 @@ def add_transaction_velocity(
     windows=("1H", "24H"),
 ) -> pd.DataFrame:
     """
-    Add transaction frequency features over rolling time windows.
-
-    Counts how many transactions a user performs within
-    rolling time windows (e.g. last 1 hour, last 24 hours).
+    Add rolling transaction frequency features per user.
     """
-    df = df.copy()
-    df = df.sort_values([user_col, time_col])
 
+    df = df.copy().sort_values([user_col, time_col])
     df.set_index(time_col, inplace=True)
 
     for window in windows:
-        rolling_counts = (
+        counts = (
             df.groupby(user_col)[user_col]
             .rolling(window)
             .count()
@@ -73,7 +61,7 @@ def add_transaction_velocity(
 
         df = (
             df.reset_index()
-            .merge(rolling_counts, on=[user_col, time_col], how="left")
+            .merge(counts, on=[user_col, time_col], how="left")
             .set_index(time_col)
         )
 
