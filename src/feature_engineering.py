@@ -55,44 +55,25 @@ def add_transaction_velocity(
     """
     Add transaction frequency features over rolling time windows.
 
-    Purpose
-    -------
-    Fraudulent behavior often exhibits unusually high transaction
-    frequency shortly after signup.
-
-    Parameters
-    ----------
-    df : pd.DataFrame
-        Fraud dataset.
-    user_col : str
-        User identifier column.
-    time_col : str
-        Transaction timestamp column.
-    windows : tuple
-        Rolling window sizes (e.g., '1H', '24H').
-
-    Returns
-    -------
-    pd.DataFrame
-        Dataset with transaction velocity features.
+    Counts how many transactions a user performs within
+    rolling time windows (e.g. last 1 hour, last 24 hours).
     """
     df = df.copy()
     df = df.sort_values([user_col, time_col])
+
     df.set_index(time_col, inplace=True)
 
-    # if not pd.api.types.is_datetime64_any_dtype(df["purchase_time"]):
-    # raise TypeError("purchase_time must be datetime before feature engineering.")
-
     for window in windows:
-        velocity = (
-            df.groupby(user_col)
+        rolling_counts = (
+            df.groupby(user_col)[user_col]
             .rolling(window)
-            .size()
+            .count()
             .reset_index(name=f"transactions_last_{window}")
         )
+
         df = (
             df.reset_index()
-            .merge(velocity, on=[user_col, time_col], how="left")
+            .merge(rolling_counts, on=[user_col, time_col], how="left")
             .set_index(time_col)
         )
 
