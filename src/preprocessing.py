@@ -22,6 +22,7 @@ def clean_fraud_data(df: pd.DataFrame) -> pd.DataFrame:
     4. Handle missing values:
        - Categorical: fill with 'Unknown'
        - Numerical: fill with median
+    5. Validate target column.
 
     Parameters
     ----------
@@ -33,24 +34,24 @@ def clean_fraud_data(df: pd.DataFrame) -> pd.DataFrame:
     pd.DataFrame
         Cleaned fraud dataset.
     """
-    df = df.copy()
+    required_cols = {
+        "user_id", "signup_time", "purchase_time",
+        "purchase_value", "class"
+    }
+    missing = required_cols - set(df.columns)
+    if missing:
+        raise ValueError(f"Missing required columns: {missing}")
 
-    # Remove duplicates
-    df = df.drop_duplicates()
+    df = df.copy().drop_duplicates()
 
-    # Convert timestamps
     df["signup_time"] = pd.to_datetime(df["signup_time"], errors="coerce")
     df["purchase_time"] = pd.to_datetime(df["purchase_time"], errors="coerce")
-
-    # Drop rows with missing critical timestamps
     df = df.dropna(subset=["signup_time", "purchase_time"])
 
-    # Handle categorical missing values
     for col in ["browser", "source", "sex"]:
         if col in df.columns:
             df[col] = df[col].fillna("Unknown")
 
-    # Handle numerical missing values
     for col in ["age", "purchase_value"]:
         if col in df.columns:
             df[col] = df[col].fillna(df[col].median())
@@ -65,11 +66,12 @@ def clean_creditcard_data(df: pd.DataFrame) -> pd.DataFrame:
     Steps
     -----
     1. Remove duplicate rows.
+    2. Validate target column.
 
-    Note
-    ----
-    The dataset has no missing values and PCA features (V1–V28)
-    should not be altered at this stage.
+    Notes
+    -----
+    - No missing values expected.
+    - PCA features (V1–V28) must not be altered.
 
     Parameters
     ----------
@@ -81,6 +83,7 @@ def clean_creditcard_data(df: pd.DataFrame) -> pd.DataFrame:
     pd.DataFrame
         Cleaned credit card dataset.
     """
-    df = df.copy()
-    df = df.drop_duplicates()
-    return df
+    if "Class" not in df.columns:
+        raise ValueError("Target column 'Class' not found.")
+
+    return df.copy().drop_duplicates()

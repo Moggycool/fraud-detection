@@ -31,6 +31,8 @@ def add_time_features(df: pd.DataFrame) -> pd.DataFrame:
     pd.DataFrame
         Dataset with additional time-based features.
     """
+    # if not pd.api.types.is_datetime64_any_dtype(df["purchase_time"]):
+    # raise TypeError("purchase_time must be datetime before feature engineering.")
     df = df.copy()
 
     df["hour_of_day"] = df["purchase_time"].dt.hour
@@ -77,6 +79,9 @@ def add_transaction_velocity(
     df = df.copy()
     df = df.sort_values([user_col, time_col])
     df.set_index(time_col, inplace=True)
+
+    # if not pd.api.types.is_datetime64_any_dtype(df["purchase_time"]):
+    # raise TypeError("purchase_time must be datetime before feature engineering.")
 
     for window in windows:
         velocity = (

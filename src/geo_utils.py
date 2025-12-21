@@ -30,6 +30,9 @@ def convert_ip_to_int(df: pd.DataFrame, ip_col: str = "ip_address") -> pd.DataFr
     df["ip_int"] = df[ip_col].astype("int64")
     return df
 
+    # df["ip_int"] = pd.to_numeric(df[ip_col], errors="coerce")
+    # return df
+
 
 def merge_ip_country(
     fraud_df: pd.DataFrame,
