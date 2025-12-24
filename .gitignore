@@ -11,3 +11,4 @@ myenv/
 .idea/
 logs/
 models/
+.vscode/
