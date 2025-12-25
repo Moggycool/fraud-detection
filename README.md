@@ -20,3 +20,20 @@ Both datasets exhibit extreme class imbalance (<2% fraud). SMOTE was selected to
 Reproducibility
 - All preprocessing steps are implemented using Scikit-learn pipelines and ColumnTransformer to ensure consistency across training and inference stages.
 
+
+
+1. Project Overview
+
+2. Problem Statement
+
+3. Dataset Description
+
+4. Modeling Approach
+
+5. Evaluation Metrics
+
+6. Model Comparison
+
+7. Final Model Selection
+
+8. How to Run
