@@ -29,10 +29,20 @@ class OneHotEncoderWithUnknownReporter(BaseEstimator, TransformerMixin):
             min_frequency=self.min_frequency,
             drop=self.drop,
         )
+        # Initialize attributes that will be set in fit to satisfy linters
+        self.categories_ = None
+        self.feature_names_in_ = None
 
-    def fit(self, X, y=None):
+    def fit(self, X, y=None, **fit_params):
+        # Ensure y is referenced to satisfy linters when unused (no-op)
+        _ = y
         # Fit underlying encoder and expose common attributes
-        self.encoder.fit(X)
+        # Accept and forward additional fit params if the underlying encoder supports them
+        try:
+            self.encoder.fit(X, y, **fit_params)
+        except TypeError:
+            # Fallback if encoder.fit doesn't accept y or extra params
+            self.encoder.fit(X)
         # expose categories_ to match OneHotEncoder API
         self.categories_ = getattr(self.encoder, 'categories_', None)
         self.feature_names_in_ = getattr(
@@ -72,11 +82,14 @@ class OneHotEncoderWithUnknownReporter(BaseEstimator, TransformerMixin):
 
         return self.encoder.transform(X_input)
 
-    def fit_transform(self, X, y=None):
-        self.fit(X, y)
+    def fit_transform(self, X, y=None, **fit_params):
+        """Fit to data, then transform it."""
+        # Accept and forward additional fit params for compatibility with TransformerMixin
+        self.fit(X, y, **fit_params)
         return self.transform(X)
 
     def get_feature_names_out(self, input_features=None):
+        """Get output feature names from the underlying encoder."""
         return self.encoder.get_feature_names_out(input_features)
 
 

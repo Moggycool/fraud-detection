@@ -86,7 +86,7 @@ def apply_smote(X_train, y_train, sampling_strategy='auto', method='smote', rand
         if is_sparse:
             X_res = sp.csr_matrix(X_res)
         return X_res, y_res
-    except Exception as e:
+    except (ValueError, TypeError, MemoryError, RuntimeError) as e:
         warnings.warn(
             f"Resampling failed: {e}. Returning original data. "
             f"If your features are sparse, consider using a dense preprocessor (set sparse_output=False) "
