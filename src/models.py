@@ -16,14 +16,32 @@ def logistic_regression():
     )
 
 
-def random_forest(n_estimators=200, max_depth=None):
-    """ Random Forest model with balanced class weights. """
+def random_forest(n_estimators=200, max_depth=None, min_samples_split=2, class_weight="balanced", n_jobs=1, **kwargs):
+    """ Random Forest model with configurable parameters.
+
+    Parameters
+    ----------
+    n_estimators : int
+        Number of trees.
+    max_depth : int or None
+        Maximum tree depth.
+    min_samples_split : int
+        Minimum samples to split an internal node.
+    class_weight : dict or str or None
+        Class weight specification.
+    n_jobs : int
+        Number of parallel jobs for the estimator.
+    **kwargs : dict
+        Additional keyword arguments forwarded to sklearn's RandomForestClassifier.
+    """
     return RandomForestClassifier(
         n_estimators=n_estimators,
         max_depth=max_depth,
-        class_weight="balanced",
+        min_samples_split=min_samples_split,
+        class_weight=class_weight,
         random_state=42,
-        n_jobs=-1
+        n_jobs=n_jobs,
+        **kwargs
     )
 
 
@@ -120,7 +138,7 @@ class ThresholdOptimizedModel:
 
 
 # NEW: Factory function for threshold-optimized models
-def threshold_optimized_random_forest(n_estimators=200, max_depth=None, threshold=0.65):
+def threshold_optimized_random_forest(n_estimators=200, max_depth=None, threshold=0.65, **rf_kwargs):
     """
     Create a Random Forest with threshold optimization capability.
 
@@ -129,5 +147,6 @@ def threshold_optimized_random_forest(n_estimators=200, max_depth=None, threshol
     threshold : float, default=0.65
         Optimal threshold based on your analysis
     """
-    rf = random_forest(n_estimators=n_estimators, max_depth=max_depth)
+    rf = random_forest(n_estimators=n_estimators,
+                       max_depth=max_depth, **rf_kwargs)
     return ThresholdOptimizedModel(rf, threshold=threshold)
