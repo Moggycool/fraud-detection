@@ -1,6 +1,7 @@
 # src/visualization.py
 """Module for visualization of model performance."""
 # Visualization: Confusion Matrix and Precision-Recall Curve
+from pathlib import Path
 import matplotlib.pyplot as plt
 import seaborn as sns
 import numpy as np
@@ -19,9 +20,15 @@ def plot_confusion_matrix(cm, title="Confusion Matrix", figsize=(8, 6)):
     plt.show()
 
 
-def plot_pr_curve(y_true, y_prob, label=None, figsize=(8, 6)):
+def plot_pr_curve(y_true, y_prob, label=None, ax=None, figsize=(8, 6)):
     """Plot Precision-Recall curve."""
-    _, ax = plt.subplots(figsize=figsize)
+    if ax is None:
+        # Create new figure if no axes provided
+        _, ax = plt.subplots(figsize=figsize)
+        standalone = True
+    else:
+        standalone = False
+
     precision, recall, _ = precision_recall_curve(y_true, y_prob)
     pr_auc = auc(recall, precision)
 
@@ -29,12 +36,19 @@ def plot_pr_curve(y_true, y_prob, label=None, figsize=(8, 6)):
             label=f'{label} (AUC = {pr_auc:.3f})' if label else f'AUC = {pr_auc:.3f}')
     ax.set_xlabel("Recall")
     ax.set_ylabel("Precision")
-    ax.set_title("Precision-Recall Curve")
+
+    if standalone:
+        ax.set_title("Precision-Recall Curve")
+
     ax.grid(True, alpha=0.3)
 
     if label:
         ax.legend()
-    plt.show()
+
+    if standalone:
+        plt.show()
+
+    return ax, pr_auc
 
 
 def plot_threshold_analysis(threshold_results, metrics=None, figsize=(12, 8)):
@@ -136,7 +150,6 @@ def save_figure(path, fig=None, **savefig_kwargs):
     **savefig_kwargs :
         Passed to `Figure.savefig` (dpi, bbox_inches, etc.).
     """
-    from pathlib import Path
 
     p = Path(path)
     if not p.parent.exists():
